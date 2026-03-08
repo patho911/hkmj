@@ -87,7 +87,10 @@ width:60px;
 <div class="container">
 
 <h1>🀄 Hong Kong Mahjong Score Tracker</h1>
-
+<h2>Enter names, confirm points assignments, and click New Game to update dropdown list.</h2>
+<br>
+<br>
+<br>
 <div class="players">
 <input id="p1" value="Player 1" oninput="updateNames()">
 <input id="p2" value="Player 2" oninput="updateNames()">
@@ -301,7 +304,19 @@ updateScores();
 }
 
 function resetGame(){
-location.reload();
+
+scores=[0,0,0,0];
+
+// remove all rows except header
+while(scoreTable.rows.length>1){
+scoreTable.deleteRow(1);
+}
+
+// add a fresh first row
+addRow();
+
+calculate();
+
 }
 
 buildBaseTable();
@@ -311,4 +326,3 @@ addRow();
 
 </body>
 </html>
-
