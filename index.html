@@ -92,7 +92,12 @@ width:80px;
 <div class="container">
 
 <h1>🀄 Hong Kong Mahjong Score Tracker</h1>
-<h2>Enter names, confirm points assignments, and click New Game to update dropdown list.</h2>
+by <a href="https://www.youtube.com/@888Mahjong">888 Mahjong</a>
+
+<br>
+<br>
+
+<h2>To use: enter names, confirm points assignments, and click New Game to update dropdown list.</h2>
 
 <div class="players">
 <input id="p1" value="Player 1" oninput="updateNames()">
@@ -111,6 +116,8 @@ width:80px;
 </summary>
 
 <table class="baseTable">
+Default: 0,1,2,3 keep doubling, 4-5 same:16, 7-9 same:32, 10+:64
+<br>If scored hand is more than table, then just put enter table max otherwise scoring will not be correct.
 
 <tr>
 <th>Points</th>
@@ -125,13 +132,6 @@ width:80px;
 
 </details>
 
-
-<div class="scoreboard">
-<div class="score" id="s1">Player 1: 0</div>
-<div class="score" id="s2">Player 2: 0</div>
-<div class="score" id="s3">Player 3: 0</div>
-<div class="score" id="s4">Player 4: 0</div>
-</div>
 
 
 <table id="scoreTable">
@@ -151,6 +151,13 @@ width:80px;
 <button class="add" onclick="addRow()">Add Hand</button>
 <button class="remove" onclick="removeLastHand()">Remove Last Hand</button>
 <button class="reset" onclick="resetGame()">New Game</button>
+
+<div class="scoreboard">
+<div class="score" id="s1">Player 1: 0</div>
+<div class="score" id="s2">Player 2: 0</div>
+<div class="score" id="s3">Player 3: 0</div>
+<div class="score" id="s4">Player 4: 0</div>
+</div>
 
 
 <h2>🀄 Hands Won Summary</h2>
@@ -225,7 +232,7 @@ let wins=[0,0,0,0];
 let maxPoint=10;
 
 let defaultBase={
-0:1,1:2,2:4,3:8,4:16,5:16,6:32,7:32,8:64,9:64,10:64
+0:1,1:2,2:4,3:8,4:16,5:16,6:16,7:32,8:32,9:32,10:64
 };
 
 function buildBaseTable(){
@@ -433,6 +440,7 @@ addRow();
 
 </script>
 
-</body>
+<div align=center>Times this score tracker visited.<br><br><a href='https://www.counter12.com'><img src='https://www.counter12.com/img-5AYWCy2Yc910yw5Z-6.gif' border='0' alt='free counter'></a><script type='text/javascript' src='https://www.counter12.com/ad.js?id=5AYWCy2Yc910yw5Z'></script></div>
 
+</body>
 </html>
