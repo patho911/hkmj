@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HK Mahjong Score Tracker</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#1e1e1e;
+color:white;
+text-align:center;
+margin:0;
+padding:20px;
+}
+
+.container{
+max-width:1000px;
+margin:auto;
+}
+
+.players input{
+width:120px;
+padding:6px;
+margin:4px;
+}
+
+.scoreboard{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin:20px 0;
+}
+
+.score{
+background:#333;
+padding:15px;
+border-radius:8px;
+font-size:20px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:white;
+color:black;
+margin-top:10px;
+}
+
+th,td{
+border:1px solid #ccc;
+padding:6px;
+}
+
+th{
+background:#f3f3f3;
+}
+
+select,input{
+width:100%;
+padding:4px;
+}
+
+button{
+padding:10px 16px;
+margin:10px;
+border:none;
+border-radius:6px;
+font-size:16px;
+cursor:pointer;
+}
+
+.add{background:#28a745;color:white;}
+.reset{background:#dc3545;color:white;}
+.remove{background:#ff8800;color:white;}
+.pointadd{background:#007bff;color:white;}
+
+.baseTable input{
+width:80px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🀄 Hong Kong Mahjong Score Tracker</h1>
+<h2>Enter names, confirm points assignments, and click New Game to update dropdown list.</h2>
+
+<div class="players">
+<input id="p1" value="Player 1" oninput="updateNames()">
+<input id="p2" value="Player 2" oninput="updateNames()">
+<input id="p3" value="Player 3" oninput="updateNames()">
+<input id="p4" value="Player 4" oninput="updateNames()">
+</div>
+
+<h3>Point → Base Table</h3>
+
+<table class="baseTable">
+<tr>
+<th>Points</th>
+<th>Base</th>
+</tr>
+
+<tbody id="baseConfig"></tbody>
+
+</table>
+
+<button class="pointadd" onclick="addPointRow()">Add Point Level</button>
+
+<div class="scoreboard">
+<div class="score" id="s1">Player 1: 0</div>
+<div class="score" id="s2">Player 2: 0</div>
+<div class="score" id="s3">Player 3: 0</div>
+<div class="score" id="s4">Player 4: 0</div>
+</div>
+
+<table id="scoreTable">
+
+<tr>
+<th>Hand</th>
+<th>Winner</th>
+<th>Points</th>
+<th>Self Pick</th>
+<th>Discarder</th>
+<th>9 Penalty</th>
+<th>12 Penalty</th>
+</tr>
+
+</table>
+
+<button class="add" onclick="addRow()">Add Hand</button>
+<button class="remove" onclick="removeLastHand()">Remove Last Hand</button>
+<button class="reset" onclick="resetGame()">New Game</button>
+
+</div>
+
+<script>
+
+let scores=[0,0,0,0];
+let maxPoint=10;
+
+let defaultBase={
+0:1,1:2,2:4,3:8,4:16,5:16,6:32,7:32,8:64,9:64,10:64
+};
+
+function buildBaseTable(){
+
+let html="";
+
+for(let i=0;i<=maxPoint;i++){
+
+let val = defaultBase[i] ?? "";
+
+html+=`
+<tr>
+<td>${i}</td>
+<td><input type="number" value="${val}" id="base${i}" onchange="calculate()"></td>
+</tr>
+`;
+
+}
+
+baseConfig.innerHTML=html;
+
+}
+
+function addPointRow(){
+
+maxPoint++;
+
+let row=document.createElement("tr");
+
+row.innerHTML=`
+<td>${maxPoint}</td>
+<td><input type="number" id="base${maxPoint}" onchange="calculate()"></td>
+`;
+
+baseConfig.appendChild(row);
+
+}
+
+function getBase(points){
+
+let el=document.getElementById("base"+points);
+
+if(!el) return 0;
+
+return parseInt(el.value)||0;
+
+}
+
+function players(){
+return [p1.value,p2.value,p3.value,p4.value];
+}
+
+function playerSelect(blank){
+
+let list=players();
+
+let html="<select onchange='calculate()'>";
+
+if(blank) html+="<option></option>";
+
+list.forEach(p=>{
+html+="<option>"+p+"</option>";
+});
+
+html+="</select>";
+
+return html;
+
+}
+
+function yesNo(){
+
+return `
+<select onchange="calculate()">
+<option></option>
+<option>Y</option>
+<option>N</option>
+</select>
+`;
+
+}
+
+function addRow(){
+
+let r=scoreTable.insertRow();
+
+let hand=scoreTable.rows.length-1;
+
+r.insertCell().innerHTML=hand;
+r.insertCell().innerHTML=playerSelect();
+r.insertCell().innerHTML="<input type='number' min='0' onchange='calculate()'>";
+r.insertCell().innerHTML=yesNo();
+r.insertCell().innerHTML=playerSelect(true);
+r.insertCell().innerHTML=yesNo();
+r.insertCell().innerHTML=yesNo();
+
+}
+
+function removeLastHand(){
+
+if(scoreTable.rows.length<=2) return;
+
+scoreTable.deleteRow(scoreTable.rows.length-1);
+
+calculate();
+
+}
+
+function calculate(){
+
+scores=[0,0,0,0];
+
+let rows=scoreTable.rows;
+
+for(let i=1;i<rows.length;i++){
+
+let c=rows[i].cells;
+
+let winner=c[1].querySelector("select").value;
+let points=parseInt(c[2].querySelector("input").value);
+let selfPick=c[3].querySelector("select").value;
+let discarder=c[4].querySelector("select").value;
+let p9=c[5].querySelector("select").value;
+let p12=c[6].querySelector("select").value;
+
+if(!winner || isNaN(points)) continue;
+
+let base=getBase(points);
+
+let p=players();
+
+for(let x=0;x<4;x++){
+
+let name=p[x];
+let change=0;
+
+if(p12=="Y" && selfPick=="Y"){
+
+if(name==winner) change=6*base;
+else if(name==discarder) change=-6*base;
+
+}
+
+else if(p9=="Y" && selfPick!="Y"){
+
+if(name==winner) change=4*base;
+else if(name==discarder) change=-4*base;
+
+}
+
+else if(selfPick=="Y"){
+
+if(name==winner) change=6*base;
+else change=-2*base;
+
+}
+
+else{
+
+if(name==winner) change=4*base;
+else if(name==discarder) change=-2*base;
+else change=-1*base;
+
+}
+
+scores[x]+=change;
+
+}
+
+}
+
+updateScores();
+
+}
+
+function updateScores(){
+
+let p=players();
+
+s1.innerHTML=p[0]+": "+scores[0];
+s2.innerHTML=p[1]+": "+scores[1];
+s3.innerHTML=p[2]+": "+scores[2];
+s4.innerHTML=p[3]+": "+scores[3];
+
+}
+
+function updateNames(){
+updateScores();
+}
+
+function resetGame(){
+
+scores=[0,0,0,0];
+
+while(scoreTable.rows.length>1){
+scoreTable.deleteRow(1);
+}
+
+addRow();
+
+calculate();
+
+}
+
+buildBaseTable();
+addRow();
+
+</script>
+
+<br>
+<br>
+
+<div align=center>Times this web tracker visited and used.<br><br><a href='https://www.counter12.com'><img src='https://www.counter12.com/img-5AYWCy2Yc910yw5Z-6.gif' border='0' alt='free counter'></a><script type='text/javascript' src='https://www.counter12.com/ad.js?id=5AYWCy2Yc910yw5Z'></script></div>
+
+</body>
+</html>
