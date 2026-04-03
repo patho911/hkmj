@@ -1,89 +1,90 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-<script data-goatcounter="https://patho911.goatcounter.com/count"
-        async src="//gc.zgo.at/count.js"></script>
+<script data-goatcounter="https://patho911.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HK Mahjong Score Tracker</title>
 
 <style>
+body {
+    font-family: Arial;
+    background: #1e1e1e;
+    color: white;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+}
+.container { max-width: 1200px; margin: auto; }
+.players input {
+    width: 140px;
+    padding: 6px;
+    margin: 4px;
+}
+.scoreboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 20px 0;
+}
+.score {
+    background: #333;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 20px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    color: black;
+    margin: 20px auto;
+}
+th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+}
+th { background: #f3f3f3; }
+select, input {
+    width: 100%;
+    padding: 4px;
+    box-sizing: border-box;
+}
+button {
+    padding: 10px 16px;
+    margin: 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+}
+.add { background: #28a745; color: white; }
+.reset { background: #dc3545; color: white; }
+.remove { background: #ff8800; color: white; }
+.pointadd { background: #007bff; color: white; }
 
-body{
-font-family:Arial;
-background:#1e1e1e;
-color:white;
-text-align:center;
-margin:0;
-padding:20px;
+.positive { color: green; font-weight: bold; }
+.negative { color: red; font-weight: bold; }
+.running { font-weight: bold; background: #f0f0f0; }
+
+.note {
+    font-size: 0.95em;
+    color: #ddd;
+    max-width: 900px;
+    margin: 15px auto;
 }
 
-.container{
-max-width:1000px;
-margin:auto;
+/* Compact base table */
+.baseTable {
+    width: auto;
+    margin: 10px auto;
+    display: inline-block;
 }
-
-.players input{
-width:120px;
-padding:6px;
-margin:4px;
+.baseTable td, .baseTable th {
+    padding: 6px 12px;
+    width: 80px;
 }
-
-.scoreboard{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-margin:20px 0;
-}
-
-.score{
-background:#333;
-padding:15px;
-border-radius:8px;
-font-size:20px;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-background:white;
-color:black;
-margin-top:10px;
-}
-
-th,td{
-border:1px solid #ccc;
-padding:6px;
-}
-
-th{
-background:#f3f3f3;
-}
-
-select,input{
-width:100%;
-padding:4px;
-}
-
-button{
-padding:10px 16px;
-margin:10px;
-border:none;
-border-radius:6px;
-font-size:16px;
-cursor:pointer;
-}
-
-.add{background:#28a745;color:white;}
-.reset{background:#dc3545;color:white;}
-.remove{background:#ff8800;color:white;}
-.pointadd{background:#007bff;color:white;}
-
-.baseTable input{
-width:80px;
-}
-
 </style>
 </head>
 
@@ -94,61 +95,61 @@ width:80px;
 <h1>🀄 Hong Kong Mahjong Score Tracker</h1>
 by <a href="https://www.youtube.com/@888Mahjong">888 Mahjong</a>
 
-<br>
-<br>
+<br><br>
 
-<h2>To start: enter names, confirm points assignments, and click New Game to update dropdown list.</h2>
-<h3>The 9 and 12 Penalty are if a 9 or 12 Tile Exposure penalty applies where discarder pays for all.</3>
-<br>
-<br>
+<h2>To start: enter names, confirm points assignments, and click New Game.</h2>
+<div class="note">
+    <strong>9 Penalty</strong>: Discarder pays for all (4× base to winner, others 0).<br>
+    <strong>12 Penalty</strong>: Guilty player pays for all on self-pick (6× base to winner, others 0).<br>
+    Note: Note: If there is a 12 exposure potential penalty but it is not a self-pick, set 9 penalty to yes and enter the discarder, for proper chip calculation.
+</div>
 
 <div class="players">
-<input id="p1" value="Player 1" oninput="updateNames()">
-<input id="p2" value="Player 2" oninput="updateNames()">
-<input id="p3" value="Player 3" oninput="updateNames()">
-<input id="p4" value="Player 4" oninput="updateNames()">
+    P1<input id="p1" value="Player 1" oninput="updateNames()">
+    P2<input id="p2" value="Player 2" oninput="updateNames()">
+    P3<input id="p3" value="Player 3" oninput="updateNames()">
+    P4<input id="p4" value="Player 4" oninput="updateNames()">
 </div>
 
 <br>
-<br>
 
 <details>
-
-<summary style="font-size:24px;cursor:pointer;margin-top:15px;">
+<summary style="font-size:24px;cursor:pointer;margin:15px 0;">
 🀄 Point → Base Chips Table (click to expand/collapse)
 </summary>
+Default: 0,1,2,3 keep doubling (starting from 1), 4-6 same:16, 7-9 same:32, 10+:64
+If scored hand is more than provided in table, then just enter table max otherwise scoring will not be correct.<br>
 
 <table class="baseTable">
-Default: 0,1,2,3 keep doubling, 4-6 same:16, 7-9 same:32, 10+:64
-<br>If scored hand is more than table, then just enter table max otherwise scoring will not be correct.
-
-<tr>
-<th>Points</th>
-<th>Base Chips</th>
-</tr>
-
-<tbody id="baseConfig"></tbody>
-
+    <tr><th>Points</th><th>Base Chips</th></tr>
+    <tbody id="baseConfig"></tbody>
 </table>
-
+<br>
 <button class="pointadd" onclick="addPointRow()">Add Point Level</button>
-
 </details>
 
-
-
 <table id="scoreTable">
-
-<tr>
-<th>Hand</th>
-<th>Winner</th>
-<th>Points</th>
-<th>Self Pick?</th>
-<th>Discarder</th>
-<th>9 Penalty?</th>
-<th>12 Penalty?</th>
-</tr>
-
+    <thead>
+        <tr>
+            <th>Hand</th>
+            <th>Winner</th>
+            <th>Points</th>
+            <th>Self Pick?</th>
+            <th>Discarder</th>
+            <th>9 Penalty?</th>
+            <th>12 Penalty?</th>
+            <th>Base</th>
+            <th>Δ P1</th>
+            <th>Δ P2</th>
+            <th>Δ P3</th>
+            <th>Δ P4</th>
+            <th>Running P1</th>
+            <th>Running P2</th>
+            <th>Running P3</th>
+            <th>Running P4</th>
+        </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
 </table>
 
 <button class="add" onclick="addRow()">Add Hand</button>
@@ -156,297 +157,251 @@ Default: 0,1,2,3 keep doubling, 4-6 same:16, 7-9 same:32, 10+:64
 <button class="reset" onclick="resetGame()">New Game</button>
 
 <div class="scoreboard">
-<div class="score" id="s1">Player 1: 0</div>
-<div class="score" id="s2">Player 2: 0</div>
-<div class="score" id="s3">Player 3: 0</div>
-<div class="score" id="s4">Player 4: 0</div>
+    <div class="score" id="s1">Player 1: 0</div>
+    <div class="score" id="s2">Player 2: 0</div>
+    <div class="score" id="s3">Player 3: 0</div>
+    <div class="score" id="s4">Player 4: 0</div>
 </div>
 
-
 <h2>🀄 Hands Won Summary</h2>
-
 <table>
-
-<tr>
-<th>Player</th>
-<th>Hands Won</th>
-</tr>
-
-<tr>
-<td id="wname1"></td>
-<td id="w1">0</td>
-</tr>
-
-<tr>
-<td id="wname2"></td>
-<td id="w2">0</td>
-</tr>
-
-<tr>
-<td id="wname3"></td>
-<td id="w3">0</td>
-</tr>
-
-<tr>
-<td id="wname4"></td>
-<td id="w4">0</td>
-</tr>
-
+    <tr><th>Player</th><th>Hands Won</th></tr>
+    <tr><td id="wname1"></td><td id="w1">0</td></tr>
+    <tr><td id="wname2"></td><td id="w2">0</td></tr>
+    <tr><td id="wname3"></td><td id="w3">0</td></tr>
+    <tr><td id="wname4"></td><td id="w4">0</td></tr>
 </table>
 
 <br>
-The mechanics of calculation: The discarder of the hand pays double the base chips to the winner and the remaining players pay the base amount. For self-pick, the winner gets 2 times the base from the others. Scoreboard is the running total score.
-<br>
+<div class="note">
+    The discarder pays double the base chips to the winner; others pay the base amount.<br>
+    For self-pick, winner gets 2× base from each other player.<br>
+    Penalties override normal rules when set to Y.
+</div>
 
-<!-- COMMENT FORM -->
-<br>
-
-<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSeCidhYvlFxMmy6Ae3cpAtgCXBNumU0reclmD5FL6_kVNKlMg/viewform?embedded=true" width="640" height="552" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
+<!-- Your existing comment form -->
+<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSeCidhYvlFxMmy6Ae3cpAtgCXBNumU0reclmD5FL6_kVNKlMg/viewform?embedded=true" 
+        width="640" height="552" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
 
 </div>
 
 <script>
+// ==================== Base Table (compact) ====================
+let maxPoint = 10;
+let defaultBase = {0:1,1:2,2:4,3:8,4:16,5:16,6:16,7:32,8:32,9:32,10:64};
 
-function addPointRow(){
-
-maxPoint++;
-
-let row=document.createElement("tr");
-
-row.innerHTML=`
-<td>${maxPoint}</td>
-<td><input type="number" id="base${maxPoint}" onchange="calculate()"></td>
-`;
-
-document.getElementById("baseConfig").appendChild(row);
-
+function buildBaseTable() {
+    let html = "";
+    for (let i = 0; i <= maxPoint; i++) {
+        let val = defaultBase[i] ?? "";
+        html += `
+            <tr>
+                <td>${i}</td>
+                <td><input type="number" value="${val}" id="base${i}" onchange="calculate()"></td>
+            </tr>`;
+    }
+    document.getElementById("baseConfig").innerHTML = html;
 }
 
-function removeLastHand(){
-
-if(scoreTable.rows.length<=2) return;
-
-scoreTable.deleteRow(scoreTable.rows.length-1);
-
-calculate();
-
+function addPointRow() {
+    maxPoint++;
+    let row = document.createElement("tr");
+    row.innerHTML = `
+        <td>${maxPoint}</td>
+        <td><input type="number" id="base${maxPoint}" onchange="calculate()"></td>
+    `;
+    document.getElementById("baseConfig").appendChild(row);
+    calculate();
 }
 
-let scores=[0,0,0,0];
-let wins=[0,0,0,0];
-
-let maxPoint=10;
-
-let defaultBase={
-0:1,1:2,2:4,3:8,4:16,5:16,6:16,7:32,8:32,9:32,10:64
-};
-
-function buildBaseTable(){
-
-let html="";
-
-for(let i=0;i<=maxPoint;i++){
-
-let val = defaultBase[i] ?? "";
-
-html+=`
-<tr>
-<td>${i}</td>
-<td><input type="number" value="${val}" id="base${i}" onchange="calculate()"></td>
-</tr>
-`;
-
+function getBase(points) {
+    if (!points || isNaN(points)) return 0;
+    let el = document.getElementById("base" + Math.min(points, maxPoint));
+    return el ? parseInt(el.value) || 0 : 0;
 }
 
-baseConfig.innerHTML=html;
-
+// ==================== Players & Selects ====================
+function players() {
+    return [
+        document.getElementById("p1").value.trim(),
+        document.getElementById("p2").value.trim(),
+        document.getElementById("p3").value.trim(),
+        document.getElementById("p4").value.trim()
+    ];
 }
 
-function getBase(points){
-
-let el=document.getElementById("base"+points);
-if(!el) return 0;
-
-return parseInt(el.value)||0;
-
+function playerSelect(blank = false) {
+    let list = players();
+    let html = `<select onchange="calculate()">`;
+    if (blank) html += `<option></option>`;
+    list.forEach(p => {
+        if (p) html += `<option>${p}</option>`;
+    });
+    html += `</select>`;
+    return html;
 }
 
-function players(){
-return [p1.value,p2.value,p3.value,p4.value];
+function yesNo() {
+    return `
+        <select onchange="calculate()">
+            <option></option>
+            <option>Y</option>
+            <option>N</option>
+        </select>`;
 }
 
-function playerSelect(blank){
+// ==================== Table Management ====================
+const tableBody = document.getElementById("tableBody");
 
-let list=players();
+function addRow() {
+    const row = tableBody.insertRow();
+    const handNum = tableBody.rows.length;
 
-let html="<select onchange='calculate()'>";
-
-if(blank) html+="<option></option>";
-
-list.forEach(p=>{
-html+="<option>"+p+"</option>";
-});
-
-html+="</select>";
-
-return html;
-
+    row.innerHTML = `
+        <td>${handNum}</td>
+        <td>${playerSelect()}</td>
+        <td><input type="number" min="0" onchange="calculate()"></td>
+        <td>${yesNo()}</td>
+        <td>${playerSelect(true)}</td>
+        <td>${yesNo()}</td>
+        <td>${yesNo()}</td>
+        <td class="base">0</td>
+        <td class="delta"></td>
+        <td class="delta"></td>
+        <td class="delta"></td>
+        <td class="delta"></td>
+        <td class="running"></td>
+        <td class="running"></td>
+        <td class="running"></td>
+        <td class="running"></td>
+    `;
+    calculate();
 }
 
-function yesNo(){
-
-return `
-<select onchange="calculate()">
-<option></option>
-<option>Y</option>
-<option>N</option>
-</select>
-`;
-
+function removeLastHand() {
+    if (tableBody.rows.length === 0) return;
+    tableBody.deleteRow(tableBody.rows.length - 1);
+    calculate();
 }
 
-function addRow(){
-
-let r=scoreTable.insertRow();
-
-let hand=scoreTable.rows.length-1;
-
-r.insertCell().innerHTML=hand;
-r.insertCell().innerHTML=playerSelect();
-r.insertCell().innerHTML="<input type='number' min='0' max='10' onchange='calculate()'>";
-r.insertCell().innerHTML=yesNo();
-r.insertCell().innerHTML=playerSelect(true);
-r.insertCell().innerHTML=yesNo();
-r.insertCell().innerHTML=yesNo();
-
+function resetGame() {
+    while (tableBody.rows.length > 0) {
+        tableBody.deleteRow(0);
+    }
+    addRow();
+    calculate();
 }
 
-function calculate(){
+// ==================== Core Calculation ====================
+let scores = [0, 0, 0, 0];
+let wins = [0, 0, 0, 0];
 
-scores=[0,0,0,0];
-wins=[0,0,0,0];
+function calculate() {
+    scores = [0, 0, 0, 0];
+    wins = [0, 0, 0, 0];
+    const p = players();
 
-let rows=scoreTable.rows;
+    for (let i = 0; i < tableBody.rows.length; i++) {
+        const row = tableBody.rows[i];
+        const cells = row.cells;
 
-for(let i=1;i<rows.length;i++){
+        const winner    = cells[1].querySelector("select").value;
+        const pointsStr = cells[2].querySelector("input").value;
+        const selfPick  = cells[3].querySelector("select").value;
+        const discarder = cells[4].querySelector("select").value;
+        const p9        = cells[5].querySelector("select").value;
+        const p12       = cells[6].querySelector("select").value;
 
-let c=rows[i].cells;
+        const points = parseInt(pointsStr) || 0;
+        const base = getBase(points);
+        cells[7].textContent = base;
 
-let winner=c[1].querySelector("select").value;
-let points=parseInt(c[2].querySelector("input").value);
-let selfPick=c[3].querySelector("select").value;
-let discarder=c[4].querySelector("select").value;
-let p9=c[5].querySelector("select").value;
-let p12=c[6].querySelector("select").value;
+        const winnerIndex = p.indexOf(winner);
+        if (winnerIndex >= 0) wins[winnerIndex]++;
 
-if(!winner || isNaN(points)) continue;
+        let rowDeltas = [0, 0, 0, 0];
 
-let base=getBase(points);
-let p=players();
+        for (let x = 0; x < 4; x++) {
+            const name = p[x];
+            let change = 0;
 
-for(let x=0;x<4;x++){
-if(p[x]==winner){
-wins[x]++;
-}
-}
+            if (p12 === "Y" && selfPick === "Y") {
+                if (name === winner) change = 6 * base;
+                else if (name === discarder) change = -6 * base;
+            }
+            else if (p9 === "Y" && selfPick !== "Y") {
+                if (name === winner) change = 4 * base;
+                else if (name === discarder) change = -4 * base;
+            }
+            else if (selfPick === "Y") {
+                change = (name === winner) ? 6 * base : -2 * base;
+            }
+            else {
+                if (name === winner) change = 4 * base;
+                else if (name === discarder) change = -2 * base;
+                else change = -1 * base;
+            }
 
-for(let x=0;x<4;x++){
+            rowDeltas[x] = change;
+            scores[x] += change;
+        }
 
-let name=p[x];
-let change=0;
+        // Deltas
+        for (let x = 0; x < 4; x++) {
+            const deltaCell = cells[8 + x];
+            deltaCell.textContent = rowDeltas[x];
+            deltaCell.className = rowDeltas[x] > 0 ? "positive" : rowDeltas[x] < 0 ? "negative" : "delta";
+        }
 
-if(p12=="Y" && selfPick=="Y"){
+        // Running totals
+        for (let x = 0; x < 4; x++) {
+            const runningCell = cells[12 + x];
+            runningCell.textContent = scores[x];
+            runningCell.className = "running " + (scores[x] > 0 ? "positive" : scores[x] < 0 ? "negative" : "");
+        }
+    }
 
-if(name==winner) change=6*base;
-else if(name==discarder) change=-6*base;
-
-}
-
-else if(p9=="Y" && selfPick!="Y"){
-
-if(name==winner) change=4*base;
-else if(name==discarder) change=-4*base;
-
-}
-
-else if(selfPick=="Y"){
-
-if(name==winner) change=6*base;
-else change=-2*base;
-
-}
-
-else{
-
-if(name==winner) change=4*base;
-else if(name==discarder) change=-2*base;
-else change=-1*base;
-
-}
-
-scores[x]+=change;
-
-}
-
-}
-
-updateScores();
-updateWins();
-
-}
-
-function updateScores(){
-
-let p=players();
-
-s1.innerHTML=p[0]+": "+scores[0];
-s2.innerHTML=p[1]+": "+scores[1];
-s3.innerHTML=p[2]+": "+scores[2];
-s4.innerHTML=p[3]+": "+scores[3];
-
+    updateScores();
+    updateWins();
 }
 
-function updateWins(){
-
-let p=players();
-
-wname1.innerHTML=p[0];
-wname2.innerHTML=p[1];
-wname3.innerHTML=p[2];
-wname4.innerHTML=p[3];
-
-w1.innerHTML=wins[0];
-w2.innerHTML=wins[1];
-w3.innerHTML=wins[2];
-w4.innerHTML=wins[3];
-
+function updateScores() {
+    const p = players();
+    document.getElementById("s1").innerHTML = p[0] + ": " + scores[0];
+    document.getElementById("s2").innerHTML = p[1] + ": " + scores[1];
+    document.getElementById("s3").innerHTML = p[2] + ": " + scores[2];
+    document.getElementById("s4").innerHTML = p[3] + ": " + scores[3];
 }
 
-function updateNames(){
-updateScores();
-updateWins();
+function updateWins() {
+    const p = players();
+    document.getElementById("wname1").innerHTML = p[0];
+    document.getElementById("wname2").innerHTML = p[1];
+    document.getElementById("wname3").innerHTML = p[2];
+    document.getElementById("wname4").innerHTML = p[3];
+
+    document.getElementById("w1").innerHTML = wins[0];
+    document.getElementById("w2").innerHTML = wins[1];
+    document.getElementById("w3").innerHTML = wins[2];
+    document.getElementById("w4").innerHTML = wins[3];
 }
 
-function resetGame(){
-
-scores=[0,0,0,0];
-wins=[0,0,0,0];
-
-while(scoreTable.rows.length>1){
-scoreTable.deleteRow(1);
+function updateNames() {
+    calculate();
 }
 
-addRow();
-calculate();
-
-}
-
+// ==================== Initialize ====================
 buildBaseTable();
 addRow();
+calculate();
 
 </script>
 
-<div align=center>Times this score tracker visited.<br><br><a href='https://www.counter12.com'><img src='https://www.counter12.com/img-5AYWCy2Yc910yw5Z-6.gif' border='0' alt='free counter'></a><script type='text/javascript' src='https://www.counter12.com/ad.js?id=5AYWCy2Yc910yw5Z'></script></div>
+<div align="center">
+    Times this score tracker visited.<br><br>
+    <a href='https://www.counter12.com'><img src='https://www.counter12.com/img-5AYWCy2Yc910yw5Z-6.gif' border='0' alt='free counter'></a>
+    <script type='text/javascript' src='https://www.counter12.com/ad.js?id=5AYWCy2Yc910yw5Z'></script>
+</div>
 
 </body>
 </html>
