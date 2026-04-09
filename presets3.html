@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script data-goatcounter="https://patho911.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HK Mahjong Score Tracker</title>
+
+<style>
+body { font-family: Arial; background: #1e1e1e; color: white; text-align: center; margin: 0; padding: 20px; }
+.container { max-width: 1200px; margin: auto; }
+.players input { width: 140px; padding: 6px; margin: 4px; }
+.scoreboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
+.score { background: #333; padding: 15px; border-radius: 8px; font-size: 20px; }
+table { width: 100%; border-collapse: collapse; background: white; color: black; margin: 20px auto; }
+th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+th { background: #f3f3f3; }
+select, input { width: 100%; padding: 4px; box-sizing: border-box; }
+button { padding: 10px 16px; margin: 10px; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
+.add { background: #28a745; color: white; }
+.reset { background: #dc3545; color: white; }
+.remove { background: #ff8800; color: white; }
+.pointadd { background: #007bff; color: white; }
+
+.positive { color: green; font-weight: bold; }
+.negative { color: red; font-weight: bold; }
+.running { font-weight: bold; background: #f0f0f0; }
+
+.note { font-size: 0.95em; color: #ddd; max-width: 900px; margin: 15px auto; }
+
+/* Compact base table */
+.baseTable { width: auto; margin: 10px auto; display: inline-block; }
+.baseTable td, .baseTable th { padding: 5px 10px; width: 70px; }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🀄 Hong Kong Mahjong Score Tracker</h1>
+by <a href="https://www.youtube.com/@888Mahjong">888 Mahjong</a>
+
+<br><br>
+
+<h2>To start: enter names, configure or confirm points assignments, and click New Game to update dropdown list.</h2>
+<div class="note">
+    <strong>9 Penalty</strong>: Discarder pays for all (4× base to winner, others 0).<br>
+    <strong>12 Penalty</strong>: Guilty player pays for all on self-pick (6× base to winner, others 0).<br>
+    Note: If there is a 12 exposure potential penalty but it is not a self-pick, set 9 penalty to yes and enter the discarder, for proper chip calculation. 
+</div>
+
+<div class="players">
+    <input id="p1" value="Player 1" oninput="updateNames()">
+    <input id="p2" value="Player 2" oninput="updateNames()">
+    <input id="p3" value="Player 3" oninput="updateNames()">
+    <input id="p4" value="Player 4" oninput="updateNames()">
+</div>
+
+<br>
+
+<details>
+<summary style="font-size:24px;cursor:pointer;margin:15px 0;">
+🀄 Point → Base Chips Table (click to expand/collapse)
+</summary>
+Default: Uses the Classic HK Old Style preset. 0,1,2,3 keep doubling (starting from 1), 4-6 same:16, 7-9 same:32, 10+:64. If scored hand is more than provided in table, then just enter table max otherwise scoring will not be correct.<br>
+
+<table class="baseTable">
+    <tr><th>Points</th><th>Base Chips</th></tr>
+    <tbody id="baseConfig"></tbody>
+</table>
+<br>
+<button class="pointadd" onclick="addPointRow()">Add Point Level</button>
+</details>
+
+<p style="margin:20px 0; font-size:1.1em;">
+    <strong>Preset Chips Profile:</strong> &nbsp;
+    <select id="presetSelect">
+        <option value="Classic HK Old Style">Classic HK Old Style</option>
+        <option value="Modern HK Higher Mid">Modern HK, Higher Mid Fans (Half-Spicy)</option>
+        <option value="My Home Game">Aggressive Home Game</option>
+    </select>
+    <button onclick="loadPreset()" style="padding:6px 12px; font-size:14px;">Load Preset</button>
+</p>
+
+<table id="scoreTable">
+    <thead>
+        <tr>
+            <th>Hand</th>
+            <th>Winner</th>
+            <th>Points</th>
+            <th>Self Pick?</th>
+            <th>Discarder</th>
+            <th>9 Penalty?</th>
+            <th>12 Penalty?</th>
+            <th>Base</th>
+            <th>Δ P1</th>
+            <th>Δ P2</th>
+            <th>Δ P3</th>
+            <th>Δ P4</th>
+            <th>Running P1</th>
+            <th>Running P2</th>
+            <th>Running P3</th>
+            <th>Running P4</th>
+        </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+</table>
+
+<button class="add" onclick="addRow()">Add Hand</button>
+<button class="remove" onclick="removeLastHand()">Remove Last Hand</button>
+<button class="reset" onclick="resetGame()">New Game</button>
+
+<div class="scoreboard">
+    <div class="score" id="s1">Player 1: 0</div>
+    <div class="score" id="s2">Player 2: 0</div>
+    <div class="score" id="s3">Player 3: 0</div>
+    <div class="score" id="s4">Player 4: 0</div>
+</div>
+
+<h2>🀄 Hands Statistics</h2>
+<table>
+    <tr><th>Player</th><th>Hands Won</th><th>Discards (final tile)</th></tr>
+    <tr><td id="wname1"></td><td id="w1">0</td><td id="d1">0</td></tr>
+    <tr><td id="wname2"></td><td id="w2">0</td><td id="d2">0</td></tr>
+    <tr><td id="wname3"></td><td id="w3">0</td><td id="d3">0</td></tr>
+    <tr><td id="wname4"></td><td id="w4">0</td><td id="d4">0</td></tr>
+</table>
+
+<br>
+<div class="note">
+    The discarder pays double the base chips to the winner; others pay the base amount.<br>
+    For self-pick, winner gets 2× base from each other player.<br>
+    Penalties override normal rules when set to Y.
+</div>
+
+<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSeCidhYvlFxMmy6Ae3cpAtgCXBNumU0reclmD5FL6_kVNKlMg/viewform?embedded=true" 
+        width="640" height="552" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
+
+</div>
+
+<script>
+// ==================== PRESETS ====================
+const presets = {
+    "Classic HK Old Style": {0:1, 1:2, 2:4, 3:8, 4:16, 5:16, 6:16, 7:32, 8:32, 9:32, 10:64},
+    "Modern HK Higher Mid": {0:1, 1:2, 2:4, 3:8, 4:16, 5:24, 6:32, 7:48, 8:64, 9:96, 10:128, 11:192},
+    "My Home Game":        {0:1, 1:2, 2:4, 3:8, 4:16, 5:32, 6:64, 7:128, 8:256, 9:512, 10:1024}
+};
+
+// ==================== Base Table ====================
+let maxPoint = 10;
+let defaultBase = presets["Classic HK Old Style"];
+
+function buildBaseTable(config = defaultBase) {
+    let html = "";
+    for (let i = 0; i <= maxPoint; i++) {
+        let val = config[i] ?? "";
+        html += `<tr><td>${i}</td><td><input type="number" step="0.01" value="${val}" id="base${i}" onchange="calculate()"></td></tr>`;
+    }
+    document.getElementById("baseConfig").innerHTML = html;
+}
+
+function addPointRow() {
+    maxPoint++;
+    let row = document.createElement("tr");
+    row.innerHTML = `<td>${maxPoint}</td><td><input type="number" step="0.01" id="base${maxPoint}" onchange="calculate()"></td>`;
+    document.getElementById("baseConfig").appendChild(row);
+    calculate();
+}
+
+function getBase(points) {
+    if (points === "" || isNaN(points) || points < 0) return 0;
+    points = Number(points);
+
+    let bestBase = 0;
+    for (let i = 0; i <= maxPoint; i++) {
+        let el = document.getElementById("base" + i);
+        if (el) {
+            let baseVal = parseFloat(el.value) || 0;
+            if (points >= i) {
+                bestBase = baseVal;
+            }
+        }
+    }
+    return bestBase;
+}
+
+// ==================== Load Preset ====================
+function loadPreset() {
+    const selectedName = document.getElementById("presetSelect").value;
+    const config = presets[selectedName];
+    if (config) buildBaseTable(config);
+    calculate();
+}
+
+// ==================== Players & Table ====================
+function players() {
+    return [
+        document.getElementById("p1").value.trim(),
+        document.getElementById("p2").value.trim(),
+        document.getElementById("p3").value.trim(),
+        document.getElementById("p4").value.trim()
+    ];
+}
+
+function playerSelect(blank = false) {
+    let list = players();
+    let html = `<select onchange="calculate()">`;
+    if (blank) html += `<option></option>`;
+    list.forEach(p => { if (p) html += `<option>${p}</option>`; });
+    html += `</select>`;
+    return html;
+}
+
+function yesNo() {
+    return `<select onchange="calculate()"><option></option><option>Y</option><option>N</option></select>`;
+}
+
+const tableBody = document.getElementById("tableBody");
+
+function addRow() {
+    const row = tableBody.insertRow();
+    const handNum = tableBody.rows.length;
+    row.innerHTML = `
+        <td>${handNum}</td>
+        <td>${playerSelect()}</td>
+        <td><input type="number" min="0" onchange="triggerCalculate(this)"></td>
+        <td>${yesNo()}</td>
+        <td>${playerSelect(true)}</td>
+        <td>${yesNo()}</td>
+        <td>${yesNo()}</td>
+        <td class="base">0</td>
+        <td class="delta"></td><td class="delta"></td><td class="delta"></td><td class="delta"></td>
+        <td class="running"></td><td class="running"></td><td class="running"></td><td class="running"></td>
+    `;
+    // Do NOT call calculate() here — keep it clean on load
+}
+
+function removeLastHand() {
+    if (tableBody.rows.length === 0) return;
+    tableBody.deleteRow(tableBody.rows.length - 1);
+    calculate();
+}
+
+function resetGame() {
+    while (tableBody.rows.length > 0) tableBody.deleteRow(0);
+    addRow();
+    // Reset scores display to clean zero
+    updateScores();
+    updateStats();
+}
+
+function triggerCalculate(inputElement) {
+    // Only calculate if a valid points value has been entered
+    if (inputElement && inputElement.value !== "") {
+        calculate();
+    }
+}
+
+// ==================== Calculation ====================
+let scores = [0,0,0,0];
+let wins = [0,0,0,0];
+let discards = [0,0,0,0];
+
+function calculate() {
+    scores = [0,0,0,0];
+    wins = [0,0,0,0];
+    discards = [0,0,0,0];
+    const p = players();
+
+    for (let i = 0; i < tableBody.rows.length; i++) {
+        const row = tableBody.rows[i];
+        const cells = row.cells;
+
+        const winner    = cells[1].querySelector("select").value;
+        const pointsStr = cells[2].querySelector("input").value || "";
+        const selfPick  = cells[3].querySelector("select").value;
+        const discarder = cells[4].querySelector("select").value;
+        const p9        = cells[5].querySelector("select").value;
+        const p12       = cells[6].querySelector("select").value;
+
+        const points = parseFloat(pointsStr);
+        const base = getBase(points);
+        cells[7].textContent = base.toFixed(2);
+
+        const winIdx = p.indexOf(winner);
+        if (winIdx >= 0) wins[winIdx]++;
+
+        if (selfPick !== "Y" && discarder) {
+            const discIdx = p.indexOf(discarder);
+            if (discIdx >= 0) discards[discIdx]++;
+        }
+
+        let rowDeltas = [0,0,0,0];
+        for (let x = 0; x < 4; x++) {
+            const name = p[x];
+            let change = 0;
+
+            if (p12 === "Y" && selfPick === "Y") {
+                if (name === winner) change = 6 * base;
+                else if (name === discarder) change = -6 * base;
+            } else if (p9 === "Y" && selfPick !== "Y") {
+                if (name === winner) change = 4 * base;
+                else if (name === discarder) change = -4 * base;
+            } else if (selfPick === "Y") {
+                change = (name === winner) ? 6 * base : -2 * base;
+            } else {
+                if (name === winner) change = 4 * base;
+                else if (name === discarder) change = -2 * base;
+                else change = -1 * base;
+            }
+
+            rowDeltas[x] = change;
+            scores[x] += change;
+        }
+
+        for (let x = 0; x < 4; x++) {
+            const deltaCell = cells[8 + x];
+            deltaCell.textContent = rowDeltas[x].toFixed(2);
+            deltaCell.className = rowDeltas[x] > 0 ? "positive" : rowDeltas[x] < 0 ? "negative" : "delta";
+        }
+        for (let x = 0; x < 4; x++) {
+            const runCell = cells[12 + x];
+            runCell.textContent = scores[x].toFixed(2);
+            runCell.className = "running " + (scores[x] > 0 ? "positive" : scores[x] < 0 ? "negative" : "");
+        }
+    }
+    updateScores();
+    updateStats();
+}
+
+function updateScores() {
+    const p = players();
+    document.getElementById("s1").innerHTML = p[0] + ": " + scores[0].toFixed(2);
+    document.getElementById("s2").innerHTML = p[1] + ": " + scores[1].toFixed(2);
+    document.getElementById("s3").innerHTML = p[2] + ": " + scores[2].toFixed(2);
+    document.getElementById("s4").innerHTML = p[3] + ": " + scores[3].toFixed(2);
+}
+
+function updateStats() {
+    const p = players();
+    for (let i = 0; i < 4; i++) {
+        document.getElementById("wname" + (i+1)).innerHTML = p[i];
+        document.getElementById("w" + (i+1)).innerHTML = wins[i];
+        document.getElementById("d" + (i+1)).innerHTML = discards[i];
+    }
+}
+
+function updateNames() {
+    updateScores();
+    calculate();
+}
+
+// ==================== Initialize ====================
+buildBaseTable();
+addRow();           // Add first empty row (no calculation yet)
+updateScores();     // Show clean 0s on load
+updateStats();
+
+</script>
+
+<div align="center">
+    Times this score tracker visited.<br><br>
+    <a href='https://www.counter12.com'><img src='https://www.counter12.com/img-5AYWCy2Yc910yw5Z-6.gif' border='0' alt='free counter'></a>
+    <script type='text/javascript' src='https://www.counter12.com/ad.js?id=5AYWCy2Yc910yw5Z'></script>
+</div>
+
+</body>
+</html>
