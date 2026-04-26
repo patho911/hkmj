@@ -358,6 +358,22 @@ addRow();           // Add first empty row (no calculation yet)
 updateScores();     // Show clean 0s on load
 updateStats();
 
+// ==================== Prevent accidental data loss (Back button / Refresh) ====================
+window.addEventListener("beforeunload", function (e) {
+    // Check if there is any real data entered (at least one hand with points)
+    const hasData = tableBody.rows.length > 0 && 
+                    Array.from(tableBody.rows).some(row => {
+                        const pointsInput = row.cells[2].querySelector("input");
+                        return pointsInput && pointsInput.value.trim() !== "";
+                    });
+
+    if (hasData) {
+        e.preventDefault();
+        e.returnValue = "You have an ongoing game with entered hands. Are you sure you want to leave? All unsaved progress will be lost.";
+        return e.returnValue;
+    }
+});
+    
 </script>
 
 <div align="center">
